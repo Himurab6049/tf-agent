@@ -1,0 +1,80 @@
+package db
+
+import (
+	"context"
+	"time"
+)
+
+// User represents a registered server user.
+type User struct {
+	ID        string
+	Username  string
+	TokenHash string
+	Role      string // admin | member
+	Active    bool
+	CreatedAt time.Time
+}
+
+// Task represents a submitted agent task.
+type Task struct {
+	ID           string     `json:"id"`
+	UserID       string     `json:"user_id"`
+	Status       string     `json:"status"`
+	InputType    string     `json:"input_type"`
+	InputText    string     `json:"input_text"`
+	OutputType   string     `json:"output_type"`
+	PRUrl        string     `json:"pr_url,omitempty"`
+	InputTokens  int        `json:"input_tokens"`
+	OutputTokens int        `json:"output_tokens"`
+	ErrorMsg     string     `json:"error_msg,omitempty"`
+	Output          string     `json:"output,omitempty"`
+	PendingQuestion string     `json:"pending_question,omitempty"`
+	CreatedAt    time.Time  `json:"created_at"`
+	StartedAt    *time.Time `json:"started_at,omitempty"`
+	CompletedAt  *time.Time `json:"completed_at,omitempty"`
+}
+
+// UserSettings holds per-user configurable tokens. Sensitive fields are stored
+// encrypted at rest; the server layer encrypts/decrypts before calling the store.
+type UserSettings struct {
+	UserID          string
+	GitHubToken     string // encrypted at rest
+	AtlassianToken  string // encrypted at rest
+	AtlassianDomain string
+	AtlassianEmail  string
+	UpdatedAt       time.Time
+}
+
+// Store is the persistence interface. Swap sqlite → postgres without touching anything else.
+type Store interface {
+	// Users
+	CreateUser(ctx context.Context, username, tokenHash, role string) (*User, error)
+	GetUserByTokenHash(ctx context.Context, hash string) (*User, error)
+	ListUsers(ctx context.Context) ([]*User, error)
+	EnsureAdmin(ctx context.Context, username, tokenHash string) error
+	UpdateUsername(ctx context.Context, userID, username string) error
+	UpdateUser(ctx context.Context, userID, username, role string) error
+	SetUserActive(ctx context.Context, userID string, active bool) error
+	RevokeUserToken(ctx context.Context, userID string) error
+	UpdateUserToken(ctx context.Context, userID, tokenHash string) error
+	DeleteUser(ctx context.Context, userID string) error
+	GetUserByID(ctx context.Context, userID string) (*User, error)
+
+	// Tasks
+	CreateTask(ctx context.Context, userID, inputType, inputText, outputType string) (*Task, error)
+	UpdateTaskStatus(ctx context.Context, id, status string) error
+	UpdateTaskPendingQuestion(ctx context.Context, id, question string) error
+	UpdateTaskResult(ctx context.Context, id, status, prURL, errorMsg, output string, inputTokens, outputTokens int) error
+	GetTask(ctx context.Context, id string) (*Task, error)
+	ListUserTasks(ctx context.Context, userID string, limit int) ([]*Task, error)
+	MarkStaleTasksFailed(ctx context.Context) error
+
+	// User settings
+	GetUserSettings(ctx context.Context, userID string) (*UserSettings, error)
+	UpsertUserSettings(ctx context.Context, s *UserSettings) error
+
+	// Ping verifies the database connection is alive.
+	Ping(ctx context.Context) error
+
+	Close() error
+}

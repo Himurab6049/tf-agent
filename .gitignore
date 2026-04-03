@@ -1,0 +1,52 @@
+# Binaries
+.bin/
+tf-agent
+
+# Client
+client/node_modules/
+client/dist/
+client/dist-ssr/
+client/build/
+client/*.tsbuildinfo
+client/.pnp
+client/.pnp.js
+
+# Embedded web assets (copied at build time, excluded from VCS)
+cmd/server/web/
+
+# Go
+*.test
+*.out
+vendor/
+coverage.out
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Config (contains API keys)
+.tf-agent/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# Logs
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Other 
+.claude

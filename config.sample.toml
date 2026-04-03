@@ -1,0 +1,135 @@
+# tf-agent sample configuration
+# Copy this file to ~/.tf-agent/config.toml and edit as needed.
+# All fields are optional — missing fields fall back to the defaults shown here.
+# Environment variables override any value set in this file.
+
+
+# ----------------------------------------------------------------------------
+# Server
+# ----------------------------------------------------------------------------
+
+[server]
+
+# Port the HTTP server listens on.
+# Override with: (no env var — set here or use a reverse proxy)
+port = 8080
+
+# PostgreSQL connection string.
+# Set via env var DB_URL in production — do not commit credentials to this file.
+# postgres_url = "postgres://tfagent:pass@localhost:5432/tfagent?sslmode=disable"
+
+# Maximum number of LLM calls running in parallel across all users.
+# Each active task holds one slot while it is waiting for the LLM.
+# Raise this if you have many concurrent users and a high API rate limit.
+# Default: 10
+llm_concurrency = 10
+
+# Maximum number of LLM calls a single user can run in parallel.
+# Prevents one user from starving others.
+# Default: 3
+per_user_concurrency = 3
+
+# In-memory task queue capacity.
+# Tasks submitted beyond this limit are rejected with "queue full".
+# Default: 500
+queue_buffer = 500
+
+
+# ----------------------------------------------------------------------------
+# LLM provider
+# ----------------------------------------------------------------------------
+
+[provider]
+
+# Which LLM backend to use.
+# Supported values: anthropic, bedrock
+# Override with env var: CLAURST_PROVIDER=anthropic
+name = "anthropic"
+
+# Model to use for the main agent loop.
+# Anthropic models: claude-opus-4-6, claude-sonnet-4-6, claude-haiku-4-5
+# Override with env var: CLAURST_MODEL=claude-sonnet-4-6
+model = "claude-opus-4-6"
+
+
+# Anthropic-specific settings.
+# Only used when provider.name = "anthropic".
+[provider.anthropic]
+
+# Your Anthropic API key.
+# Best practice: leave this empty here and set ANTHROPIC_API_KEY in the environment
+# so the key is never stored on disk in plaintext.
+# Override with env var: ANTHROPIC_API_KEY=sk-ant-...
+api_key = ""
+
+
+# AWS Bedrock settings.
+# Only used when provider.name = "bedrock".
+# Requires AWS credentials in the environment (AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY,
+# an IAM role, or an EC2/ECS instance profile — standard AWS credential chain).
+[provider.bedrock]
+
+# AWS region where your Bedrock endpoint is provisioned.
+region = "us-east-1"
+
+# Bedrock model ID. Must match a model you have access to in your AWS account.
+model = "us.anthropic.claude-opus-4-6-20251101-v1:0"
+
+
+# ----------------------------------------------------------------------------
+# Agent behaviour
+# ----------------------------------------------------------------------------
+
+[agent]
+
+# Maximum number of LLM round-trips per task.
+# Each tool call (repo scan, file write, validation, PR creation, …) uses one turn.
+# Increase if complex tasks are hitting the limit; decrease to reduce runaway costs.
+# Default: 30
+max_turns = 30
+
+# Maximum tokens the LLM may generate per response.
+# Default: 8192
+max_tokens = 8192
+
+# Print every LLM request and response to stdout.
+# Useful for debugging prompt issues. Do not enable in production.
+# Override with env var: TF_AGENT_DEBUG=true
+debug = false
+
+
+# ----------------------------------------------------------------------------
+# Tool permissions
+# ----------------------------------------------------------------------------
+# Controls whether the agent may run each tool automatically or must ask first.
+# Values:
+#   auto    — run without asking (default, recommended for server mode)
+#   confirm — pause and ask the user before each call (useful for development)
+#   deny    — never allow this tool
+
+[permissions]
+bash    = "auto"
+write   = "auto"
+edit    = "auto"
+read    = "auto"
+glob    = "auto"
+grep    = "auto"
+default = "auto"   # fallback for any tool not listed above
+
+
+# ----------------------------------------------------------------------------
+# Hooks  (optional)
+# ----------------------------------------------------------------------------
+# Shell commands to run before or after specific tool calls.
+# Useful for audit logging, notifications, or custom validation.
+# The hook receives the tool name and input as environment variables.
+
+# Example: log every bash command to a file before it runs
+# [[hooks.pre_tool_use]]
+# tool    = "bash"
+# command = "echo \"[$(date)] bash: $TF_AGENT_TOOL_INPUT\" >> /var/log/tf-agent-audit.log"
+
+# Example: send a Slack notification when a PR is created
+# [[hooks.post_tool_use]]
+# tool    = "CreatePR"
+# command = "curl -s -X POST $SLACK_WEBHOOK_URL -d '{\"text\":\"New PR created by tf-agent\"}'"

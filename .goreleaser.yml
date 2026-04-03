@@ -1,0 +1,48 @@
+project_name: tf-agent-server
+version: 2
+
+before:
+  hooks:
+    - make build-ui
+
+builds:
+  - id: server
+    main: ./cmd/server
+    binary: tf-agent-server
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X main.Version={{.Version}}
+    hooks:
+      pre:
+        - sh -c "mkdir -p cmd/server/web && cp -r client/dist/. cmd/server/web/"
+      post:
+        - sh -c "rm -rf cmd/server/web"
+
+archives:
+  - id: default
+    format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: checksums.txt
+
+dockers:
+  - image_templates:
+      - "ghcr.io/{{ .Env.REPO_OWNER }}/tf-agent-server:{{ .Version }}"
+      - "ghcr.io/{{ .Env.REPO_OWNER }}/tf-agent-server:latest"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/amd64"
+
+release:
+  github:
+    owner: "{{ .Env.REPO_OWNER }}"
+    name: tf-agent

